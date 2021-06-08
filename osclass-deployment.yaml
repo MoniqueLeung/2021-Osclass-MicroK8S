@@ -45,7 +45,7 @@ spec:
         tier: frontend
     spec:
       containers:
-      - image: osclass:4-debian-10
+      - image: osclass:4.4.0-debian-10-r31
         name: osclass
         env:
         - name: OSCLASS_DB_HOST

@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: osclass
+  labels:
+    app: osclass
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: osclass
+    tier: frontend
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: osclass-pv-claim
+  labels:
+    app: osclass
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: osclass
+  labels:
+    app: osclass
+spec:
+  selector:
+    matchLabels:
+      app: osclass
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: osclass
+        tier: frontend
+    spec:
+      containers:
+      - image: osclass:4-debian-10
+        name: osclass
+        env:
+        - name: OSCLASS_DB_HOST
+          value: osclass-mysql
+        - name: OSCLASS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        ports:
+        - containerPort: 80
+          name: osclass
+        volumeMounts:
+        - name: osclass-persistent-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: osclass-persistent-storage
+        persistentVolumeClaim:
+          claimName: osclass-pv-claim
